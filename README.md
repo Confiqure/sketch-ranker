@@ -6,6 +6,15 @@ A web application that allows users to log in with Google, vote on their favorit
 
 This project is built using the T3 stack, which includes Next.js, TypeScript, Prisma, tRPC, and Tailwind CSS. The goal is to provide an engaging platform where users can rank comedy sketches by voting on pairs, with an Elo rating system determining the rankings.
 
+## To-Do
+
+- Integrate build system with AWS Amplify
+- Integrate my editor with ESLint and Prettier
+- Add admin interface for managing sketches
+- Add voting screen for users to rank sketches
+- Implement Elo ranking system for ranking sketches
+- Display rankings on the /rankings page
+
 ## Features
 
 - User authentication via Google
