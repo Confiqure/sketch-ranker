@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Comedy Sketch Ranker
+
+A web application that allows users to log in with Google, vote on their favorite comedy sketches, and view rankings based on Elo ratings.
+
+## Project Overview
+
+This project is built using the T3 stack, which includes Next.js, TypeScript, Prisma, tRPC, and Tailwind CSS. The goal is to provide an engaging platform where users can rank comedy sketches by voting on pairs, with an Elo rating system determining the rankings.
+
+## Features
+
+- User authentication via Google
+- Voting system for ranking comedy sketches
+- Elo ranking system to rank sketches based on user preferences
+- Admin interface for managing sketches
+
+## Tech Stack
+
+- **Next.js** - React framework for server-side rendering and static site generation
+- **TypeScript** - Superset of JavaScript for type-safe code
+- **Prisma** - ORM for interacting with PostgreSQL database
+- **tRPC** - Type-safe API development framework
+- **Tailwind CSS** - Utility-first CSS framework for styling
+- **NextAuth.js** - Authentication library for handling user sign-ins
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js (>=14.x)
+- PostgreSQL (local or hosted instance)
+- Google Developer Console (for OAuth credentials)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the repository**:
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+   ```bash
+   git clone https://github.com/Confiqure/sketch-ranker.git
+   cd sketch-ranker
+   ```
 
-## Learn More
+2. **Install dependencies**:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Set up environment variables**:
+   - Create a `.env` file in the root directory and add the following environment variables:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+     ```bash
+     DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+     GOOGLE_CLIENT_ID=your-google-client-id
+     GOOGLE_CLIENT_SECRET=your-google-client-secret
+     ```
 
-## Deploy on Vercel
+4. **Initialize Prisma**:
+   - Run the following commands to set up your database schema:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+     ```bash
+     npx prisma migrate dev --name init
+     npx prisma generate
+     ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+### Running Locally
+
+1. **Start the development server**:
+
+   ```bash
+   npm run dev
+   ```
+
+   - The app will be available at `http://localhost:3000`.
+
+2. **Test Authentication**:
+   - Visit `http://localhost:3000/profile` and sign in with Google.
+
+3. **Verify Database Integration**:
+   - Check that user information is stored in your PostgreSQL database after signing in.
+
+### Building for Production
+
+1. **Build the project**:
+
+   ```bash
+   npm run build
+   ```
+
+2. **Start the production server**:
+
+   ```bash
+   npm start
+   ```
+
+   - The app will be available at `http://localhost:3000`.
+
+### Deployment
+
+The project is set up for deployment on AWS Amplify. To deploy:
+
+1. Push the code to a GitHub repository.
+2. Connect the repository to AWS Amplify.
+3. Set the environment variables in AWS Amplify's dashboard.
+4. Deploy the app from the Amplify dashboard.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+## License
+
+This project is licensed under the MIT License.
