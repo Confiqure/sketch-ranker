@@ -55,6 +55,7 @@ This project is built using the T3 stack, which includes Next.js, TypeScript, Pr
    ```
 
 3. **Set up environment variables**:
+
    - Create a `.env` file in the root directory and add the following environment variables:
 
      ```bash
@@ -64,6 +65,7 @@ This project is built using the T3 stack, which includes Next.js, TypeScript, Pr
      ```
 
 4. **Initialize Prisma**:
+
    - Run the following commands to set up your database schema:
 
      ```bash
@@ -82,6 +84,7 @@ This project is built using the T3 stack, which includes Next.js, TypeScript, Pr
    - The app will be available at `http://localhost:3000`.
 
 2. **Test Authentication**:
+
    - Visit `http://localhost:3000/profile` and sign in with Google.
 
 3. **Verify Database Integration**:

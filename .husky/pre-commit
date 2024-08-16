@@ -1,0 +1,5 @@
+#!/bin/sh
+. ~/.nvm/nvm.sh
+nvm use
+
+npx lint-staged

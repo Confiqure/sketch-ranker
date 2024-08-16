@@ -1,9 +1,9 @@
-import RootLayoutClient from "@/components/RootLayoutClient";
+import RootLayoutClient from '@/components/RootLayoutClient'
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en">
@@ -11,5 +11,5 @@ export default function RootLayout({
         <RootLayoutClient>{children}</RootLayoutClient>
       </body>
     </html>
-  );
+  )
 }

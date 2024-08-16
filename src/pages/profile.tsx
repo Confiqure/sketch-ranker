@@ -1,8 +1,8 @@
-import { useSession, signIn, signOut } from "next-auth/react";
-import Image from "next/image";
+import { useSession, signIn, signOut } from 'next-auth/react'
+import Image from 'next/image'
 
 export default function Profile() {
-  const { data: session } = useSession();
+  const { data: session } = useSession()
 
   if (!session) {
     return (
@@ -15,7 +15,7 @@ export default function Profile() {
           Sign in with Google
         </button>
       </div>
-    );
+    )
   }
 
   return (
@@ -47,5 +47,5 @@ export default function Profile() {
         </div>
       </div>
     </div>
-  );
+  )
 }
