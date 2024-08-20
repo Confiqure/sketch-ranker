@@ -1,11 +1,7 @@
 import { initTRPC } from '@trpc/server'
-import { PrismaClient } from '@prisma/client'
+import { createContext } from './context'
 
-const prisma = new PrismaClient()
-
-const t = initTRPC.context<{ prisma: PrismaClient }>().create()
+const t = initTRPC.context<typeof createContext>().create()
 
 export const router = t.router
 export const publicProcedure = t.procedure
-
-export const createContext = () => ({ prisma })

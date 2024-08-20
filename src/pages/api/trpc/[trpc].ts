@@ -1,7 +1,8 @@
 import * as trpcNext from '@trpc/server/adapters/next'
-import { router, createContext, publicProcedure } from '../../../server/trpc'
+import { createContext } from '@/server/context'
+import { publicProcedure, router } from '@/server/trpc'
 
-const appRouter = router({
+export const appRouter = router({
   // Example procedure
   example: publicProcedure.query(() => {
     return 'Hello from tRPC!'

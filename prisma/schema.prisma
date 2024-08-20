@@ -58,3 +58,14 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Sketch {
+  id          String   @id @default(cuid())
+  title       String
+  collection  String?
+  description String?
+  imageUrl    String?
+  rating      Float    @default(1000.0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

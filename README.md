@@ -73,6 +73,14 @@ This project is built using the T3 stack, which includes Next.js, TypeScript, Pr
      npx prisma generate
      ```
 
+5. **Load seed data**:
+
+   - Run the following command to load seed data into your database:
+
+     ```bash
+     npx run seed
+     ```
+
 ### Running Locally
 
 1. **Start the development server**:
@@ -88,7 +96,12 @@ This project is built using the T3 stack, which includes Next.js, TypeScript, Pr
    - Visit `http://localhost:3000/profile` and sign in with Google.
 
 3. **Verify Database Integration**:
-   - Check that user information is stored in your PostgreSQL database after signing in.
+
+   - Check that user information is stored in your PostgreSQL database after signing in:
+
+     ```bash
+     npx prisma studio
+     ```
 
 ### Building for Production
 
