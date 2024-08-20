@@ -1,12 +1,10 @@
 import * as trpcNext from '@trpc/server/adapters/next'
 import { createContext } from '@/server/context'
-import { publicProcedure, router } from '@/server/trpc'
+import { router } from '@/server/trpc'
+import { sketchRouter } from '@/server/routers/sketchRouter'
 
 export const appRouter = router({
-  // Example procedure
-  example: publicProcedure.query(() => {
-    return 'Hello from tRPC!'
-  }),
+  sketch: sketchRouter,
 })
 
 export type AppRouter = typeof appRouter
