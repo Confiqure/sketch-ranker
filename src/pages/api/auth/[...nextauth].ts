@@ -13,6 +13,7 @@ export default NextAuth({
     }),
   ],
   adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: 'jwt',
   },
