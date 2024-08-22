@@ -36,10 +36,12 @@ export const sketchRouter = router({
       await ctx.prisma.sketch.update({ where: { id: loserId }, data: { rating: newLoserRating } })
     }),
 
-  getTopSketches: publicProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.sketch.findMany({
-      orderBy: { rating: 'desc' },
-      take: 50,
-    })
-  }),
+  getTopSketches: publicProcedure
+    .input(z.object({ take: z.number().optional() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.sketch.findMany({
+        orderBy: { rating: 'desc' },
+        ...(input?.take ? { take: input.take } : {}),
+      })
+    }),
 })

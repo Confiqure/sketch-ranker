@@ -4,11 +4,17 @@ import { useState, useEffect } from 'react'
 
 const LeaderboardPage = () => {
   const router = useRouter()
-  const { data: sketches, isLoading } = trpc.sketch.getTopSketches.useQuery()
+  const [take, setTake] = useState(25)
   const [showScroll, setShowScroll] = useState(false)
+  const { data: sketches, refetch, isLoading } = trpc.sketch.getTopSketches.useQuery({ take })
 
   const scrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleViewAll = () => {
+    setTake(0)
+    refetch()
   }
 
   useEffect(() => {
@@ -63,6 +69,15 @@ const LeaderboardPage = () => {
           ))}
         </ul>
       </div>
+
+      {take !== 0 && (
+        <button
+          onClick={handleViewAll}
+          className="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg mt-6 hover:bg-blue-600 transition-colors"
+        >
+          View All
+        </button>
+      )}
 
       {showScroll && (
         <button
