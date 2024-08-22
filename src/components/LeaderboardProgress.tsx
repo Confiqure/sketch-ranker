@@ -62,12 +62,14 @@ const LeaderboardProgress = ({ voteCount }: { voteCount: number }) => {
           </p>
           <div className="w-full bg-gray-200 rounded-full h-4 relative">
             <div
-              className={`h-4 rounded-full transition-all duration-300 ease-in-out ${
+              className={`h-4 rounded-full transition-all duration-500 ease-in-out ${
                 isLevelComplete ? 'bg-gray-400' : 'bg-green-600'
               }`}
               style={{ width: `${isLevelComplete ? 0 : currentLevelProgress}%` }}
             >
-              <span className="absolute inset-0 flex items-center justify-center text-white text-sm">
+              <span
+                className={`absolute inset-0 flex items-center justify-center text-sm ${currentLevelProgress < 50 || currentLevelProgress == 100 ? 'text-black' : 'text-white'}`}
+              >
                 {isLevelComplete ? `0%` : `${currentLevelProgress.toFixed(0)}%`}
               </span>
             </div>

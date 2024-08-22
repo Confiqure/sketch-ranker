@@ -44,7 +44,7 @@ const VotePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-300 flex flex-col items-center">
-      <div className="flex-1 w-full min-h-full p-4 bg-white rounded-md shadow-md">
+      <div className="flex-1 w-full min-h-full p-4 bg-white text-black rounded-md shadow-md">
         <LeaderboardProgress voteCount={voteCount} />
         <SketchVote
           sketch1={formattedSketches[0]}
