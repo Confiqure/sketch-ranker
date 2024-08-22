@@ -4,6 +4,7 @@ import { Sketch } from '@prisma/client'
 type SketchProps = {
   sketch1: Sketch
   sketch2: Sketch
+  onSkip: () => void
   // eslint-disable-next-line no-unused-vars
   onVote: (winnerId: string, loserId: string) => void
 }
@@ -40,7 +41,7 @@ const SketchCard: React.FC<{ sketch: Sketch; onVote: () => void; buttonColor: st
   </div>
 )
 
-const SketchVote: React.FC<SketchProps> = ({ sketch1, sketch2, onVote }) => {
+const SketchVote: React.FC<SketchProps> = ({ sketch1, sketch2, onSkip, onVote }) => {
   return (
     <div className="min-h-[75vh] flex flex-col justify-center items-center bg-gray-100 p-4 lg:p-6">
       <div className="flex flex-col lg:flex-row justify-center items-stretch gap-4 lg:gap-8 w-full max-w-4xl">
@@ -61,6 +62,14 @@ const SketchVote: React.FC<SketchProps> = ({ sketch1, sketch2, onVote }) => {
             buttonColor="bg-green-500"
           />
         </div>
+      </div>
+      <div className="mt-8 flex justify-center">
+        <button
+          className="px-6 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors text-sm lg:text-base"
+          onClick={onSkip}
+        >
+          Skip
+        </button>
       </div>
     </div>
   )

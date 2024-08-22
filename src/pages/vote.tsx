@@ -7,15 +7,26 @@ const VotePage = () => {
   const { data: sketches, isLoading, refetch } = trpc.sketch.getTwoSketches.useQuery()
   const voteForSketchMutation = trpc.sketch.voteForSketch.useMutation()
 
+  const [skipCount, setSkipCount] = useState(0)
   const [voteCount, setVoteCount] = useState(0)
 
   useEffect(() => {
-    // Load vote count from local storage or set it to 0
     const storedVoteCount = localStorage.getItem('voteCount')
     if (storedVoteCount) {
       setVoteCount(parseInt(storedVoteCount, 10))
     }
+    const storedSkipCount = localStorage.getItem('skipCount')
+    if (storedSkipCount) {
+      setSkipCount(parseInt(storedSkipCount, 10))
+    }
   }, [])
+
+  const handleSkip = () => {
+    const newSkipCount = skipCount + 1
+    setSkipCount(newSkipCount)
+    localStorage.setItem('skipCount', newSkipCount.toString())
+    refetch()
+  }
 
   const handleVote = (winnerId: string, loserId: string) => {
     voteForSketchMutation.mutate(
@@ -50,6 +61,7 @@ const VotePage = () => {
           sketch1={formattedSketches[0]}
           sketch2={formattedSketches[1]}
           onVote={handleVote}
+          onSkip={handleSkip}
         />
       </div>
     </div>
