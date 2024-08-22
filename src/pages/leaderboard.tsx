@@ -1,7 +1,30 @@
 import { trpc } from '../utils/trpc'
+import { useRouter } from 'next/router'
+import { useState, useEffect } from 'react'
 
 const LeaderboardPage = () => {
+  const router = useRouter()
   const { data: sketches, isLoading } = trpc.sketch.getTopSketches.useQuery()
+  const [showScroll, setShowScroll] = useState(false)
+
+  const scrollTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    const checkScrollTop = () => {
+      if (!showScroll && window.scrollY > 300) {
+        setShowScroll(true)
+      } else if (showScroll && window.scrollY <= 300) {
+        setShowScroll(false)
+      }
+    }
+
+    window.addEventListener('scroll', checkScrollTop)
+    return () => {
+      window.removeEventListener('scroll', checkScrollTop)
+    }
+  }, [showScroll])
 
   if (isLoading)
     return (
@@ -12,6 +35,13 @@ const LeaderboardPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100 p-6">
+      <button
+        onClick={() => router.push('/vote')}
+        className="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg mb-6 hover:bg-blue-600 transition-colors"
+      >
+        Back to Voting
+      </button>
+
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl">
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Leaderboard</h1>
         <ul className="space-y-6">
@@ -33,6 +63,15 @@ const LeaderboardPage = () => {
           ))}
         </ul>
       </div>
+
+      {showScroll && (
+        <button
+          onClick={scrollTop}
+          className="fixed bottom-10 right-10 bg-blue-500 text-white font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-blue-600 transition-colors"
+        >
+          ↑ Scroll to Top
+        </button>
+      )}
     </div>
   )
 }

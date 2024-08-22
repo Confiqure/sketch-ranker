@@ -39,7 +39,7 @@ export const sketchRouter = router({
   getTopSketches: publicProcedure.query(async ({ ctx }) => {
     return ctx.prisma.sketch.findMany({
       orderBy: { rating: 'desc' },
-      take: 25,
+      take: 50,
     })
   }),
 })
