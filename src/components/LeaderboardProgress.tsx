@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti'
 import Link from 'next/link'
 
 const VOTE_THRESHOLD = 20
-const LEVEL_THRESHOLD = 25
+const LEVEL_THRESHOLD = 23
 
 const calculateLevel = (votes: number) => {
   const exponent = 1.5
@@ -26,14 +26,14 @@ const LeaderboardProgress = ({ voteCount }: { voteCount: number }) => {
   const isLevelComplete = voteCount >= nextLevelVotes
 
   useEffect(() => {
-    if (isLevelComplete) {
+    if (voteCount > LEVEL_THRESHOLD && isLevelComplete) {
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 150,
+        spread: 80,
         origin: { y: 0.6 },
       })
     }
-  }, [isLevelComplete])
+  }, [isLevelComplete, voteCount])
 
   return (
     <div className="flex flex-col mb-4 text-center">
