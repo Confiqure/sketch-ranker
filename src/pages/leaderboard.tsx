@@ -1,12 +1,14 @@
+import { Sketch } from '@prisma/client'
 import { trpc } from '../utils/trpc'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 
 const LeaderboardPage = () => {
   const router = useRouter()
-  const [take, setTake] = useState(25)
   const [showScroll, setShowScroll] = useState(false)
-  const { data: sketches, refetch, isLoading } = trpc.sketch.getTopSketches.useQuery({ take })
+  const [sketches, setSketches] = useState<Sketch[]>([])
+  const [take, setTake] = useState(25)
+  const { data, isLoading, refetch } = trpc.sketch.getTopSketches.useQuery({ take })
 
   const scrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -16,6 +18,18 @@ const LeaderboardPage = () => {
     setTake(0)
     refetch()
   }
+
+  useEffect(() => {
+    if (data) {
+      setSketches(
+        data.map((sketch) => ({
+          ...sketch,
+          createdAt: new Date(sketch.createdAt),
+          updatedAt: new Date(sketch.updatedAt),
+        }))
+      )
+    }
+  }, [data])
 
   useEffect(() => {
     const checkScrollTop = () => {
@@ -32,7 +46,7 @@ const LeaderboardPage = () => {
     }
   }, [showScroll])
 
-  if (isLoading)
+  if (isLoading && sketches.length === 0)
     return (
       <div className="min-h-screen flex justify-center items-center bg-gray-100 text-xl text-gray-700">
         Loading...
