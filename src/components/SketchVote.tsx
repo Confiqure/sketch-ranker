@@ -15,7 +15,7 @@ const SketchCard: React.FC<{ sketch: Sketch; onVote: () => void; buttonColor: st
   buttonColor,
 }) => (
   <div className="sketch flex flex-col bg-white p-4 lg:p-6 rounded-lg shadow-md w-full text-center">
-    <div className="flex-grow">
+    <div className="flex-grow flex flex-col justify-center">
       {/* <Image
         src={sketch.imageUrl || ''}
         alt={sketch.title}
