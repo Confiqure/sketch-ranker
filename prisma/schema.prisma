@@ -65,8 +65,15 @@ model Sketch {
   title       String
   collection  String?
   description String?
-  imageUrl    String?
+  images      Image[]
   rating      Float    @default(1000.0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Image {
+  id       String @id @default(cuid())
+  fileName String
+  sketchId String
+  sketch   Sketch @relation(fields: [sketchId], references: [id], onDelete: Cascade)
 }

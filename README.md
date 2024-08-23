@@ -69,7 +69,7 @@ This project is built using the T3 stack, which includes Next.js, TypeScript, Pr
    - Run the following commands to set up your database schema:
 
      ```bash
-     npx prisma migrate dev --name init
+     npx prisma migrate dev
      npx prisma generate
      ```
 
@@ -78,7 +78,7 @@ This project is built using the T3 stack, which includes Next.js, TypeScript, Pr
    - Run the following command to load seed data into your database:
 
      ```bash
-     npx run seed
+     npm run seed
      ```
 
 ### Running Locally

@@ -2,15 +2,33 @@ import { Sketch } from '@prisma/client'
 import { router, publicProcedure } from '../trpc'
 import { z } from 'zod'
 
+export type SketchWithImage = Sketch & {
+  imageUrl?: string
+}
+
 export const sketchRouter = router({
   getTwoSketches: publicProcedure.query(async ({ ctx }) => {
-    const sketches = await ctx.prisma.$queryRaw`
-        SELECT * FROM "Sketch"
-        ORDER BY RANDOM()
-        LIMIT 2;
-    `
+    const sketches = await ctx.prisma.$queryRaw<
+      Sketch[]
+    >`SELECT * FROM "Sketch" ORDER BY RANDOM() LIMIT 2`
 
-    return sketches as Sketch[]
+    const s3BaseUrl = 'https://itysl-memes.s3.amazonaws.com/'
+
+    const sketchesWithImage: SketchWithImage[] = await Promise.all(
+      sketches.map(async (sketch) => {
+        const sketchImage = await ctx.prisma.$queryRaw<
+          { fileName: string }[]
+        >`SELECT "fileName" FROM "Image" WHERE "sketchId" = ${sketch.id} ORDER BY RANDOM() LIMIT 1`
+        const randomImageUrl = sketchImage.length ? `${s3BaseUrl}${sketchImage[0]?.fileName}` : null
+
+        return {
+          ...sketch,
+          ...(randomImageUrl ? { imageUrl: randomImageUrl } : {}),
+        }
+      })
+    )
+
+    return sketchesWithImage
   }),
 
   voteForSketch: publicProcedure

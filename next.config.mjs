@@ -8,6 +8,11 @@ const nextConfig = {
         hostname: 'lh3.googleusercontent.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'itysl-memes.s3.amazonaws.com',
+        pathname: '/**',
+      },
     ],
   },
 }

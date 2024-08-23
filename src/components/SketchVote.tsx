@@ -1,32 +1,35 @@
 import React from 'react'
-import { Sketch } from '@prisma/client'
+import { SketchWithImage } from '@/server/routers/sketchRouter'
 
 type SketchProps = {
-  sketch1: Sketch
-  sketch2: Sketch
+  sketch1: SketchWithImage
+  sketch2: SketchWithImage
   onSkip: () => void
   // eslint-disable-next-line no-unused-vars
   onVote: (winnerId: string, loserId: string) => void
 }
 
-const SketchCard: React.FC<{ sketch: Sketch; onVote: () => void; buttonColor: string }> = ({
-  sketch,
-  onVote,
-  buttonColor,
-}) => (
+const SketchCard: React.FC<{
+  sketch: SketchWithImage
+  onVote: () => void
+  buttonColor: string
+}> = ({ sketch, onVote, buttonColor }) => (
   <div className="sketch flex flex-col bg-white p-4 lg:p-6 rounded-lg shadow-md w-full text-center">
     <div className="flex-grow flex flex-col justify-center">
-      {/* <Image
-        src={sketch.imageUrl || ''}
-        alt={sketch.title}
-        className="w-full h-48 lg:h-64 object-cover rounded-md mb-4"
-      /> */}
       <h2 className="text-lg lg:text-2xl font-bold text-gray-800 mb-2">{sketch.title}</h2>
+      {sketch.collection && (
+        <p className="text-gray-400 italic mb-4 text-2xs lg:text-xs">{sketch.collection}</p>
+      )}
+      {sketch.imageUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={sketch.imageUrl}
+          alt={sketch.title}
+          className="w-full h-48 lg:h-64 object-cover rounded-md mb-4"
+        />
+      )}
       {sketch.description && (
         <p className="text-gray-600 mb-2 text-sm lg:text-base">{sketch.description}</p>
-      )}
-      {sketch.collection && (
-        <p className="text-gray-400 italic mb-4 text-xs lg:text-sm">{sketch.collection}</p>
       )}
     </div>
     <button
