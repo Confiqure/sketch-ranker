@@ -1,8 +1,12 @@
 import { useSession, signIn, signOut } from 'next-auth/react'
 import Image from 'next/image'
+import { trpc } from '../utils/trpc'
 
 export default function Profile() {
   const { data: session } = useSession()
+  const { data: voteCount } = trpc.sketch.getMyVoteCount.useQuery(undefined, {
+    enabled: !!session,
+  })
 
   if (!session) {
     return (
@@ -38,6 +42,11 @@ export default function Profile() {
           <p className="text-lg text-gray-700 mb-4">
             <span className="font-semibold">Email:</span> {session.user?.email}
           </p>
+          {voteCount !== undefined && (
+            <p className="text-lg text-gray-700 mb-4">
+              <span className="font-semibold">Votes cast:</span> {voteCount}
+            </p>
+          )}
           <button
             onClick={() => signOut()}
             className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
