@@ -1,35 +1,19 @@
-import { Sketch } from '@prisma/client'
+import Head from 'next/head'
 import { trpc } from '../utils/trpc'
-import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 
 const LeaderboardPage = () => {
-  const router = useRouter()
   const [showScroll, setShowScroll] = useState(false)
-  const [sketches, setSketches] = useState<Sketch[]>([])
   const [take, setTake] = useState(25)
-  const { data, isLoading, refetch } = trpc.sketch.getTopSketches.useQuery({ take })
+  // Render straight from the query — no mirrored state, no date juggling (the list
+  // only shows title/description/rating).
+  const { data: sketches, isLoading } = trpc.sketch.getTopSketches.useQuery({ take })
 
   const scrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleViewAll = () => {
-    setTake(0)
-    refetch()
-  }
-
-  useEffect(() => {
-    if (data) {
-      setSketches(
-        data.map((sketch) => ({
-          ...sketch,
-          createdAt: new Date(sketch.createdAt),
-          updatedAt: new Date(sketch.updatedAt),
-        }))
-      )
-    }
-  }, [data])
+  const handleViewAll = () => setTake(0)
 
   useEffect(() => {
     const checkScrollTop = () => {
@@ -46,7 +30,7 @@ const LeaderboardPage = () => {
     }
   }, [showScroll])
 
-  if (isLoading && sketches.length === 0)
+  if (isLoading && !sketches)
     return (
       <div className="min-h-screen flex justify-center items-center bg-gray-100 text-xl text-gray-700">
         Loading...
@@ -55,13 +39,9 @@ const LeaderboardPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100 p-6">
-      <button
-        onClick={() => router.push('/vote')}
-        className="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg mb-6 hover:bg-blue-600 transition-colors"
-      >
-        Back to Voting
-      </button>
-
+      <Head>
+        <title>Leaderboard — Comedy Sketch Ranker</title>
+      </Head>
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-4xl">
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Leaderboard</h1>
         <ul className="space-y-6">

@@ -6,8 +6,12 @@ class AppDocument extends Document {
       <Html lang="en">
         <Head>
           <link rel="manifest" href="/manifest.json" />
-          <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-          <meta name="theme-color" content="#000000" />
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+          <meta name="theme-color" content="#2563eb" />
+          <meta
+            name="description"
+            content="Head-to-head Elo rankings for every I Think You Should Leave sketch."
+          />
         </Head>
         <body>
           <Main />
