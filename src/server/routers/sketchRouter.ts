@@ -7,6 +7,8 @@ import {
   isAllowedVoter,
 } from '../trpc'
 import { z } from 'zod'
+import { eloUpdate, replayPersonalElo } from '../elo'
+import { attachRandomImages } from '../images'
 
 export type SketchWithImage = Sketch & {
   imageUrl?: string
@@ -15,23 +17,11 @@ export type SketchWithImage = Sketch & {
 export const sketchRouter = router({
   getTwoSketches: publicProcedure.query(async ({ ctx }) => {
     // Two random sketches need raw SQL (Prisma has no ORDER BY RANDOM()); their
-    // meme images come back in ONE follow-up query and the random pick happens
-    // here — was a query per sketch before.
+    // meme images come back in ONE follow-up query via the shared helper.
     const sketches = await ctx.prisma.$queryRaw<
       Sketch[]
     >`SELECT * FROM "Sketch" ORDER BY RANDOM() LIMIT 2`
-
-    const images = await ctx.prisma.image.findMany({
-      where: { sketchId: { in: sketches.map((s) => s.id) } },
-      select: { sketchId: true, fileName: true },
-    })
-
-    const s3BaseUrl = 'https://itysl-memes.s3.amazonaws.com/'
-    return sketches.map((sketch): SketchWithImage => {
-      const candidates = images.filter((img) => img.sketchId === sketch.id)
-      const pick = candidates[Math.floor(Math.random() * candidates.length)]
-      return { ...sketch, ...(pick ? { imageUrl: `${s3BaseUrl}${pick.fileName}` } : {}) }
-    })
+    return attachRandomImages(ctx.prisma, sketches)
   }),
 
   // The signed-in caller's gate state — drives the /vote page's three UX states.
@@ -56,14 +46,7 @@ export const sketchRouter = router({
 
         if (!winner || !loser) return
 
-        const winnerRating = winner.rating
-        const loserRating = loser.rating
-
-        const expectedWinnerScore = 1 / (1 + 10 ** ((loserRating - winnerRating) / 400))
-        const expectedLoserScore = 1 / (1 + 10 ** ((winnerRating - loserRating) / 400))
-
-        const newWinnerRating = winnerRating + 32 * (1 - expectedWinnerScore)
-        const newLoserRating = loserRating + 32 * (0 - expectedLoserScore)
+        const [newWinnerRating, newLoserRating] = eloUpdate(winner.rating, loser.rating)
 
         await tx.sketch.update({ where: { id: winnerId }, data: { rating: newWinnerRating } })
         await tx.sketch.update({ where: { id: loserId }, data: { rating: newLoserRating } })
@@ -83,9 +66,50 @@ export const sketchRouter = router({
   getTopSketches: publicProcedure
     .input(z.object({ take: z.number().optional() }))
     .query(async ({ ctx, input }) => {
-      return ctx.prisma.sketch.findMany({
+      // Images + win/loss tallies ride along so the podium and leaderboard can
+      // show a still and a record without extra round-trips.
+      const sketches = await ctx.prisma.sketch.findMany({
         orderBy: { rating: 'desc' },
+        include: { _count: { select: { votesWon: true, votesLost: true } } },
         ...(input?.take ? { take: input.take } : {}),
       })
+      return attachRandomImages(ctx.prisma, sketches)
+    }),
+
+  // "Your taste, ranked" — the caller's own votes replayed through the shared
+  // Elo math (see server/elo.ts). No denormalized state: the Vote log is the
+  // source of truth, so this is always exactly consistent with their history.
+  getMyLeaderboard: protectedProcedure
+    .input(z.object({ take: z.number().min(1).max(100).optional() }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user?.id
+      if (!userId) return { entries: [], sketchesRanked: 0, votesCast: 0 }
+
+      const votes = await ctx.prisma.vote.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'asc' },
+        select: { winnerId: true, loserId: true },
+      })
+      const standings = replayPersonalElo(votes)
+      const top = standings.slice(0, input?.take ?? 10)
+
+      const sketches = await ctx.prisma.sketch.findMany({
+        where: { id: { in: top.map((s) => s.sketchId) } },
+        select: { id: true, title: true, collection: true, description: true },
+      })
+      const byId = new Map(sketches.map((s) => [s.id, s]))
+      const withImages = await attachRandomImages(
+        ctx.prisma,
+        top.flatMap((standing) => {
+          const sketch = byId.get(standing.sketchId)
+          return sketch ? [{ ...standing, ...sketch }] : [] // dropped = sketch deleted since
+        })
+      )
+
+      return {
+        entries: withImages,
+        sketchesRanked: standings.length,
+        votesCast: votes.length,
+      }
     }),
 })
