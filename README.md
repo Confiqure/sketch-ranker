@@ -16,14 +16,27 @@ build (`amplify.yml`).
 
 ## Features
 
-- Head-to-head voting (`/vote`) with skip, keyboard shortcuts, leveling + confetti
+- Head-to-head voting (`/vote`) with skip, keyboard shortcuts, leveling + confetti,
+  and a 3-second post-vote cooldown (animated countdown) that blocks accidental
+  double-votes across pair transitions
 - **Invite-only voting**: sign in with Google, then an admin approves your email
   from `/admin` (friendly ask-the-owner page until then); the homepage and
   leaderboard stay public
-- Elo rating system (K=32) — transactional updates plus a durable per-vote event
-  log powering cross-device per-user stats
-- Leaderboard (`/leaderboard`) with view-all and live rankings
-- Random sketch memes on vote cards (S3-hosted)
+- Elo rating system (K=32, `src/server/elo.ts` — one module shared by the global
+  board and personal replays) — transactional updates plus a durable per-vote
+  event log powering cross-device per-user stats
+- **Personal leaderboard** (`/profile`): the signed-in user's votes replayed
+  through the same Elo math — "your taste, ranked," always consistent with the
+  vote log, no denormalized state
+- Leaderboard (`/leaderboard`) with thumbnails, win–loss records, view-all, and
+  🥇🥈🥉 markers bridging the signed-in user's personal top 3 onto the public board
+- Landing-page podium: top 3 with random stills, first place biggest
+- Random sketch memes (S3-hosted) on vote cards, podium, and leaderboards via a
+  shared image helper (`src/server/images.ts`)
+- ITYSL-flavored design system (`src/styles/globals.css` theme tokens: cream/
+  mustard/ketchup palette, Bungee display font) + a custom 404
+- Centralized site identity + social-share config (`src/site.config.ts` +
+  `PageMeta` — OG/Twitter cards, canonical URLs, per-page titles)
 - Admin interface (`/admin`) for managing sketches, meme images, and the voter
   allowlist — gated on the `ADMIN_EMAILS` env var
 - 86-sketch seed catalog covering all three seasons + 879 image mappings

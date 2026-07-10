@@ -41,12 +41,12 @@ const LeaderboardProgress = ({ voteCount }: { voteCount: number }) => {
         <>
           <p className="text-lg font-medium mb-2">
             {voteCount < VOTE_THRESHOLD
-              ? `You need ${VOTE_THRESHOLD - voteCount} more votes to unlock the leaderboard.`
-              : `Congratulations! You've unlocked the leaderboard!`}
+              ? `${VOTE_THRESHOLD - voteCount} more votes to warm up your personal ranking.`
+              : `Personal ranking unlocked — check your profile!`}
           </p>
           <div className="w-full bg-gray-200 rounded-full h-5 relative">
             <div
-              className="bg-blue-600 h-5 rounded-full transition-all duration-300 ease-in-out"
+              className="bg-sky-pop h-5 rounded-full transition-all duration-300 ease-in-out"
               style={{ width: `${thresholdProgress}%` }}
             >
               <span className="absolute inset-0 flex items-center justify-center text-white text-sm">
@@ -63,7 +63,7 @@ const LeaderboardProgress = ({ voteCount }: { voteCount: number }) => {
           <div className="w-full bg-gray-200 rounded-full h-5 relative">
             <div
               className={`h-5 rounded-full transition-all duration-500 ease-in-out ${
-                isLevelComplete ? 'bg-gray-400' : 'bg-green-600'
+                isLevelComplete ? 'bg-gray-400' : 'bg-mustard-dark'
               }`}
               style={{ width: `${isLevelComplete ? 0 : currentLevelProgress}%` }}
             >

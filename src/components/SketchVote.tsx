@@ -11,12 +11,20 @@ export type SketchCardData = {
   imageUrl?: string
 }
 
+// Double-click guard: votes lock for this long after each click. Exported so
+// the page-level keyboard shortcuts enforce the same window.
+export const VOTE_COOLDOWN_MS = 3000
+
 type SketchProps = {
   sketch1: SketchCardData
   sketch2: SketchCardData
   onSkip: () => void
   // eslint-disable-next-line no-unused-vars
   onVote: (winnerId: string, loserId: string) => void
+  /** Increments on every vote; > 0 and changing = a fresh cooldown is running. */
+  cooldownKey: number
+  coolingDown: boolean
+  secondsLeft: number
 }
 
 const SketchCard: React.FC<{
@@ -25,65 +33,103 @@ const SketchCard: React.FC<{
   // Complete class strings — Tailwind's scanner can't see dynamically-built names
   // (the old `hover:${color.replace(...)}` hover states never actually existed).
   buttonClass: string
-}> = ({ sketch, onVote, buttonClass }) => (
-  <div className="sketch flex flex-col bg-white p-4 lg:p-6 rounded-lg shadow-md w-full text-center">
-    <div className="grow flex flex-col justify-center">
-      <h2 className="text-lg lg:text-2xl font-bold text-gray-800 mb-2">{sketch.title}</h2>
-      {sketch.collection && (
-        <p className="text-gray-400 italic mb-4 text-xs">{sketch.collection}</p>
-      )}
+  tilt: string
+  cooldownKey: number
+  coolingDown: boolean
+  secondsLeft: number
+}> = ({ sketch, onVote, buttonClass, tilt, cooldownKey, coolingDown, secondsLeft }) => (
+  <div
+    className={`sketch flex w-full flex-col rounded-2xl border-2 border-ink/10 bg-white p-4 text-center shadow-md transition-transform hover:-translate-y-0.5 lg:p-6 ${tilt}`}
+  >
+    <div className="flex grow flex-col justify-center">
+      <h2 className="mb-2 text-lg font-bold text-ink lg:text-2xl">{sketch.title}</h2>
+      {sketch.collection && <p className="mb-4 text-xs italic text-ink/40">{sketch.collection}</p>}
       {sketch.imageUrl && (
-        <div className="relative w-full h-48 lg:h-64 mb-4">
+        <div className="relative mb-4 h-48 w-full lg:h-64">
           <Image
             src={sketch.imageUrl}
             alt={sketch.title}
             fill
             sizes="(min-width: 1024px) 28rem, 100vw"
-            className="object-cover rounded-md"
+            className="rounded-md object-cover"
           />
         </div>
       )}
       {sketch.description && (
-        <p className="text-gray-600 mb-2 text-sm lg:text-base">{sketch.description}</p>
+        <p className="mb-2 text-sm text-ink/60 lg:text-base">{sketch.description}</p>
       )}
     </div>
     <button
-      className={`w-full py-2 text-white rounded-lg transition-colors mt-2 lg:mt-4 text-sm lg:text-base ${buttonClass}`}
+      className={`relative mt-2 w-full overflow-hidden rounded-xl py-2 text-sm font-semibold text-white transition-all lg:mt-4 lg:text-base ${buttonClass} ${
+        coolingDown ? 'cursor-not-allowed opacity-90' : 'hover:animate-wiggle'
+      }`}
       onClick={onVote}
+      disabled={coolingDown}
+      aria-disabled={coolingDown}
     >
-      Vote for {sketch.title}
+      {coolingDown ? (
+        <>
+          {/* keyed per vote so the drain restarts cleanly each time */}
+          <span
+            key={cooldownKey}
+            className="absolute inset-y-0 left-0 bg-white/25"
+            style={{ animation: `cooldown-drain ${VOTE_COOLDOWN_MS}ms linear forwards` }}
+          />
+          <span className="relative">
+            Locked in… <span className="font-goofy">{secondsLeft}</span>
+          </span>
+        </>
+      ) : (
+        <>Vote for {sketch.title}</>
+      )}
     </button>
   </div>
 )
 
-const SketchVote: React.FC<SketchProps> = ({ sketch1, sketch2, onSkip, onVote }) => {
+const SketchVote: React.FC<SketchProps> = ({
+  sketch1,
+  sketch2,
+  onSkip,
+  onVote,
+  cooldownKey,
+  coolingDown,
+  secondsLeft,
+}) => {
   return (
-    <div className="min-h-[75vh] flex flex-col justify-center items-center bg-gray-100 p-4 lg:p-6">
-      <div className="flex flex-col lg:flex-row justify-center items-stretch gap-4 lg:gap-8 w-full max-w-4xl">
-        <div className="flex-1 flex items-stretch">
+    <div className="flex min-h-[75vh] flex-col items-center justify-center p-4 lg:p-6">
+      <div className="flex w-full max-w-4xl flex-col items-stretch justify-center gap-4 lg:flex-row lg:gap-8">
+        <div className="flex flex-1 items-stretch">
           <SketchCard
             sketch={sketch1}
             onVote={() => onVote(sketch1.id, sketch2.id)}
-            buttonClass="bg-blue-500 hover:bg-blue-600"
+            buttonClass="bg-sky-pop hover:bg-sky-pop-dark"
+            tilt="lg:-rotate-1"
+            cooldownKey={cooldownKey}
+            coolingDown={coolingDown}
+            secondsLeft={secondsLeft}
           />
         </div>
-        <div className="flex items-center justify-center text-2xl lg:text-3xl font-bold text-gray-600">
+        <div className="flex items-center justify-center font-goofy text-2xl text-ketchup lg:text-3xl">
           VS
         </div>
-        <div className="flex-1 flex items-stretch">
+        <div className="flex flex-1 items-stretch">
           <SketchCard
             sketch={sketch2}
             onVote={() => onVote(sketch2.id, sketch1.id)}
-            buttonClass="bg-green-500 hover:bg-green-600"
+            buttonClass="bg-ketchup hover:bg-ketchup-dark"
+            tilt="lg:rotate-1"
+            cooldownKey={cooldownKey}
+            coolingDown={coolingDown}
+            secondsLeft={secondsLeft}
           />
         </div>
       </div>
       <div className="mt-8 flex justify-center">
         <button
-          className="px-6 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition-colors text-sm lg:text-base"
+          className="rounded-full border-2 border-ink/15 bg-white px-6 py-2 text-sm font-semibold text-ink/70 transition-colors hover:bg-cream-deep lg:text-base"
           onClick={onSkip}
         >
-          Skip
+          Too close to call — skip
         </button>
       </div>
     </div>

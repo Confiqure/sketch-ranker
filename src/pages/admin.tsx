@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import Head from 'next/head'
+import PageMeta from '@/components/PageMeta'
+import { ROUTES } from '@/site.config'
 import { useSession, signIn } from 'next-auth/react'
 import { trpc } from '../utils/trpc'
 
@@ -87,9 +88,7 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <Head>
-        <title>Admin — Comedy Sketch Ranker</title>
-      </Head>
+      <PageMeta title="Admin" path={ROUTES.admin} noIndex />
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-800 mb-6">Sketch Admin</h1>
 

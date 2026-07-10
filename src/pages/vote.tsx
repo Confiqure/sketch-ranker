@@ -1,19 +1,20 @@
-import { useCallback, useEffect } from 'react'
-import Head from 'next/head'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { signIn, useSession } from 'next-auth/react'
-import SketchVote from '@/components/SketchVote'
+import SketchVote, { VOTE_COOLDOWN_MS } from '@/components/SketchVote'
 import { trpc } from '../utils/trpc'
 import LeaderboardProgress from '@/components/LeaderboardProgress'
 import ShortcutGuide from '@/components/ShortcutGuide'
+import PageMeta from '@/components/PageMeta'
+import { ROUTES } from '@/site.config'
 
 // Friendly full-page state for the two "can't vote yet" cases.
 const GateCard = ({ children }: { children: React.ReactNode }) => (
-  <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100 px-6">
-    <Head>
-      <title>Vote — Comedy Sketch Ranker</title>
-    </Head>
-    <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">{children}</div>
+  <div className="flex min-h-screen flex-col items-center justify-center bg-cream px-6">
+    <PageMeta title="Vote" path={ROUTES.vote} />
+    <div className="w-full max-w-md rounded-2xl border-2 border-ink/10 bg-white p-8 text-center shadow-md">
+      {children}
+    </div>
   </div>
 )
 
@@ -40,12 +41,42 @@ const VotePage = () => {
     enabled: canVote,
   })
 
+  // Post-vote lockout: prevents an accidental double-click from landing a stray
+  // vote on the NEXT pair. The countdown ticks a visible 3…2…1 on the buttons.
+  const [cooldownKey, setCooldownKey] = useState(0)
+  const [coolingDown, setCoolingDown] = useState(false)
+  const [secondsLeft, setSecondsLeft] = useState(0)
+  const timersRef = useRef<{ end?: NodeJS.Timeout; tick?: NodeJS.Timeout }>({})
+
+  const startCooldown = useCallback(() => {
+    clearTimeout(timersRef.current.end)
+    clearInterval(timersRef.current.tick)
+    setCooldownKey((k) => k + 1)
+    setCoolingDown(true)
+    setSecondsLeft(Math.ceil(VOTE_COOLDOWN_MS / 1000))
+    timersRef.current.tick = setInterval(() => setSecondsLeft((s) => Math.max(1, s - 1)), 1000)
+    timersRef.current.end = setTimeout(() => {
+      clearInterval(timersRef.current.tick)
+      setCoolingDown(false)
+    }, VOTE_COOLDOWN_MS)
+  }, [])
+
+  useEffect(() => {
+    const timers = timersRef.current
+    return () => {
+      clearTimeout(timers.end)
+      clearInterval(timers.tick)
+    }
+  }, [])
+
   const handleSkip = useCallback(() => {
     refetch()
   }, [refetch])
 
   const handleVote = useCallback(
     (winnerId: string, loserId: string) => {
+      if (coolingDown) return
+      startCooldown()
       voteForSketchMutation.mutate(
         { winnerId, loserId },
         {
@@ -56,7 +87,7 @@ const VotePage = () => {
         }
       )
     },
-    [refetch, utils.sketch.getMyVoteCount, voteForSketchMutation]
+    [coolingDown, startCooldown, refetch, utils.sketch.getMyVoteCount, voteForSketchMutation]
   )
 
   useEffect(() => {
@@ -79,9 +110,12 @@ const VotePage = () => {
     }
   }, [canVote, handleSkip, handleVote, sketches])
 
+  const meta = <PageMeta title="Vote" path={ROUTES.vote} />
+
   if (status === 'loading' || (session && voterStatus === undefined))
     return (
-      <div className="min-h-screen flex justify-center items-center bg-gray-100 text-xl text-gray-700">
+      <div className="flex min-h-screen items-center justify-center bg-cream text-xl text-ink/70">
+        {meta}
         Loading…
       </div>
     )
@@ -90,17 +124,17 @@ const VotePage = () => {
   if (!session)
     return (
       <GateCard>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Sign in to vote</h1>
-        <p className="text-gray-600 mb-6">
+        <h1 className="mb-2 font-goofy text-2xl text-ink">Sign in to vote</h1>
+        <p className="mb-6 text-ink/60">
           Votes shape the rankings, so each one is tied to an account. The{' '}
-          <Link href="/leaderboard" className="text-blue-600 hover:underline">
+          <Link href={ROUTES.leaderboard} className="text-sky-pop hover:underline">
             leaderboard
           </Link>{' '}
           is public.
         </p>
         <button
           onClick={() => signIn('google', { callbackUrl: '/vote' })}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="rounded-xl bg-sky-pop px-6 py-2 font-semibold text-white transition-colors hover:bg-sky-pop-dark"
         >
           Sign in with Google
         </button>
@@ -111,21 +145,21 @@ const VotePage = () => {
   if (!voterStatus?.allowed)
     return (
       <GateCard>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Almost in!</h1>
-        <p className="text-gray-600 mb-4">
+        <h1 className="mb-2 font-goofy text-2xl text-ink">Almost in!</h1>
+        <p className="mb-4 text-ink/60">
           Voting is invite-only to keep the rankings honest. Ask Dylan to add{' '}
-          <span className="font-semibold text-gray-800">{session.user?.email}</span> to the voter
-          list — once he does, this page unlocks automatically.
+          <span className="font-semibold text-ink">{session.user?.email}</span> to the voter list —
+          once he does, this page unlocks automatically.
         </p>
         <a
           href={`mailto:dwheelerw@gmail.com?subject=Add me to Sketch Ranker&body=Hey Dylan — add ${session.user?.email} to the voter list!`}
-          className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-block rounded-xl bg-sky-pop px-6 py-2 font-semibold text-white transition-colors hover:bg-sky-pop-dark"
         >
           Email Dylan
         </a>
-        <p className="mt-4 text-sm text-gray-500">
+        <p className="mt-4 text-sm text-ink/50">
           Meanwhile, the{' '}
-          <Link href="/leaderboard" className="text-blue-600 hover:underline">
+          <Link href={ROUTES.leaderboard} className="text-sky-pop hover:underline">
             leaderboard
           </Link>{' '}
           is open to everyone.
@@ -136,7 +170,8 @@ const VotePage = () => {
   // State 3: approved voter.
   if (isLoading || !sketches)
     return (
-      <div className="min-h-screen flex justify-center items-center bg-gray-100 text-xl text-gray-700">
+      <div className="flex min-h-screen items-center justify-center bg-cream text-xl text-ink/70">
+        {meta}
         Loading…
       </div>
     )
@@ -145,15 +180,13 @@ const VotePage = () => {
     return <div className="text-center">No sketches available. Please try again later.</div>
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-gray-100 to-gray-300 flex flex-col items-center">
-      <Head>
-        <title>Vote — Comedy Sketch Ranker</title>
-      </Head>
-      <div className="flex-1 w-full min-h-full p-4 bg-white text-black rounded-md shadow-md">
+    <div className="flex min-h-screen flex-col items-center bg-cream">
+      {meta}
+      <div className="min-h-full w-full flex-1 p-4">
         <ShortcutGuide />
         <LeaderboardProgress voteCount={voteCount ?? 0} />
         {voteForSketchMutation.isError && (
-          <p className="mb-2 text-center text-sm text-red-600">
+          <p className="mb-2 text-center text-sm text-ketchup">
             That vote didn&apos;t save — the database may be waking up. Try again.
           </p>
         )}
@@ -162,6 +195,9 @@ const VotePage = () => {
           sketch2={sketches[1]}
           onVote={handleVote}
           onSkip={handleSkip}
+          cooldownKey={cooldownKey}
+          coolingDown={coolingDown}
+          secondsLeft={secondsLeft}
         />
       </div>
     </div>
