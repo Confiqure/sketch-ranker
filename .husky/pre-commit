@@ -1,5 +1,8 @@
 #!/bin/sh
-. ~/.nvm/nvm.sh
-nvm use
+# Use nvm when available; node may come from mise/homebrew instead (optional).
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+  . "$HOME/.nvm/nvm.sh"
+  nvm use >/dev/null 2>&1 || true
+fi
 
 npx lint-staged

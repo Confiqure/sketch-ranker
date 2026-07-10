@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable no-console */
 
 const sketches = [
   {
@@ -463,7 +462,10 @@ const sketches = [
 
 async function seedSketches() {
   const { PrismaClient } = require('@prisma/client')
-  const prisma = new PrismaClient()
+  const { PrismaPg } = require('@prisma/adapter-pg')
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  })
 
   try {
     for (const sketch of sketches) {

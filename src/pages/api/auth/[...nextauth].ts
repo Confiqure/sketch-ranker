@@ -1,11 +1,10 @@
-import NextAuth from 'next-auth'
+import NextAuth, { type NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/server/db'
 
-const prisma = new PrismaClient()
-
-export default NextAuth({
+// Exported so getServerSession (tRPC context) shares the exact same auth config.
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -31,11 +30,13 @@ export default NextAuth({
       else if (new URL(url).origin === baseUrl) return url
       return baseUrl
     },
-    async session({ session, token }: { session: any; token: any }) {
-      if (token?.id) {
+    async session({ session, token }) {
+      if (session.user && typeof token.id === 'string') {
         session.user.id = token.id
       }
       return session
     },
   },
-})
+}
+
+export default NextAuth(authOptions)
