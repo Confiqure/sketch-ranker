@@ -1,11 +1,11 @@
 {
   "name": "Comedy Sketch Ranker",
   "short_name": "SketchRanker",
-  "description": "Vote on your favorite comedy sketches and see the rankings!",
+  "description": "Head-to-head votes decide the definitive ranking of every I Think You Should Leave sketch.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#fdf3df",
+  "theme_color": "#f2b418",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

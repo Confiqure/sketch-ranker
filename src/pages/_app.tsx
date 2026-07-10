@@ -7,7 +7,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
 import Script from 'next/script'
 import Head from 'next/head'
+import { Bungee } from 'next/font/google'
 import NavBar from '@/components/NavBar'
+
+// Chunky display face for headings — self-hosted at build by next/font (no
+// runtime Google request). Exposed as --font-bungee for the Tailwind theme.
+const bungee = Bungee({ weight: '400', subsets: ['latin'], variable: '--font-bungee' })
 
 // Self-hosted Plausible (analytics.dylanwheeler.net). Env vars injected by AWS Amplify
 // (Terraform: monorepo workspace/infrastructure/amplify/apps.tf); the script only renders
@@ -31,8 +36,10 @@ const SketchApp: AppType = ({ Component, pageProps: { session, ...pageProps } }:
             src={`${plausibleHost}/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js`}
           />
         )}
-        <NavBar />
-        <Component {...pageProps} />
+        <div className={`${bungee.variable} min-h-screen bg-cream`}>
+          <NavBar />
+          <Component {...pageProps} />
+        </div>
       </QueryClientProvider>
     </SessionProvider>
   )

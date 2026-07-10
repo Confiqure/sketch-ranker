@@ -7,11 +7,7 @@ class AppDocument extends Document {
         <Head>
           <link rel="manifest" href="/manifest.json" />
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-          <meta name="theme-color" content="#2563eb" />
-          <meta
-            name="description"
-            content="Head-to-head Elo rankings for every I Think You Should Leave sketch."
-          />
+          <meta name="theme-color" content="#fdf3df" />
         </Head>
         <body>
           <Main />
