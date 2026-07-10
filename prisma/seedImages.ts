@@ -1,63 +1,57 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
-/* eslint-disable no-console */
+// Seeds the sketch↔meme-image mappings from prisma/sketch_images.json — a tracked
+// export of the production data (2026-07-10), so a fresh environment seeds fully
+// without the long-lost Google-Drive CSV this script originally read. The image
+// files themselves live in the public itysl-memes S3 bucket; only fileName rows
+// are stored. Idempotent: existing fileNames are skipped.
+
 const fs = require('fs')
 const path = require('path')
-const csv = require('csv-parser')
 
-const IMAGES_DIR = path.join(__dirname, '../public/images/sketches/')
-
-interface CsvRow {
-  Title: string
-  Page: string
-  Link: string
+interface ImageRow {
+  title: string
+  fileName: string
 }
 
 async function seedImages() {
   const { PrismaClient } = require('@prisma/client')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { Sketch } = require('@prisma/client')
-
-  const prisma = new PrismaClient()
+  const { PrismaPg } = require('@prisma/adapter-pg')
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  })
 
   try {
-    const sketchesMap = new Map<string, string>()
+    const rows: ImageRow[] = JSON.parse(
+      fs.readFileSync(path.join(__dirname, 'sketch_images.json'), 'utf8')
+    )
 
-    const sketches = await prisma.sketch.findMany()
-    sketches.forEach((sketch: typeof Sketch) => {
-      sketchesMap.set(sketch.title, sketch.id)
-    })
+    const sketches = await prisma.sketch.findMany({ select: { id: true, title: true } })
+    const idByTitle = new Map<string, string>(
+      sketches.map((s: { id: string; title: string }) => [s.title, s.id])
+    )
+    const existing = new Set<string>(
+      (await prisma.image.findMany({ select: { fileName: true } })).map(
+        (i: { fileName: string }) => i.fileName
+      )
+    )
 
-    const results: CsvRow[] = []
-    fs.createReadStream('prisma/sketch_images_map.csv')
-      .pipe(csv())
-      .on('data', (data: CsvRow) => results.push(data))
-      .on('end', async () => {
-        for (const row of results) {
-          const { Title, Link } = row
-          const imageName = Link.split('id=')[1] + '.jpg'
-          const imagePath = path.join(IMAGES_DIR, imageName)
-
-          if (fs.existsSync(imagePath)) {
-            const sketchId = sketchesMap.get(Title)
-            if (sketchId) {
-              await prisma.image.create({
-                data: {
-                  fileName: imageName,
-                  sketchId,
-                },
-              })
-            } else {
-              console.error(`Sketch not found for title: ${Title}`)
-            }
-          } else {
-            console.error(`Image not found: ${imagePath}`)
-          }
+    const data = rows
+      .filter((r) => !existing.has(r.fileName))
+      .flatMap((r) => {
+        const sketchId = idByTitle.get(r.title)
+        if (!sketchId) {
+          console.error(`Sketch not found for title: ${r.title}`)
+          return []
         }
-        console.log('Images have been successfully loaded into the database.')
+        return [{ fileName: r.fileName, sketchId }]
       })
+
+    await prisma.image.createMany({ data })
+    console.log(`Images seeded: ${data.length} added, ${existing.size} already present.`)
   } catch (error) {
     console.error('Error seeding images:', error)
+    process.exitCode = 1
   } finally {
     await prisma.$disconnect()
   }
