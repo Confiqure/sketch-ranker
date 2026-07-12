@@ -21,8 +21,9 @@ export default function Home() {
         <p className="mt-4 max-w-xl text-lg text-ink/60">
           Head-to-head votes decide the definitive ranking of every{' '}
           <span className="font-semibold text-ink">I Think You Should Leave</span> sketch. Pick the
-          funnier one. Elo does the rest. You gotta.
+          funnier one. Elo does the rest.
         </p>
+        <p className="mt-2 text-sm text-ink/50">Rankings can change. People can change.</p>
         <div className="mt-8 flex gap-4">
           <Link
             href={ROUTES.vote}

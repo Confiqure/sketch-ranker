@@ -3,7 +3,8 @@ import { useSession } from 'next-auth/react'
 import { trpc, WARMUP_RETRY } from '../utils/trpc'
 import { useState, useEffect } from 'react'
 import PageMeta from '@/components/PageMeta'
-import { COPY, ROUTES } from '@/site.config'
+import { ROUTES } from '@/site.config'
+import { useWarmingLine } from '@/components/useWarmingLine'
 
 const PERSONAL_MEDALS = ['🥇', '🥈', '🥉'] as const
 
@@ -20,6 +21,7 @@ const LeaderboardPage = () => {
     { enabled: !!session, ...WARMUP_RETRY }
   )
   const myMedals = new Map(myBoard?.entries.map((e, i) => [e.sketchId, PERSONAL_MEDALS[i]]) ?? [])
+  const warmingLine = useWarmingLine()
 
   const scrollTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -54,7 +56,7 @@ const LeaderboardPage = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-cream text-xl text-ink/70">
         {meta}
-        {COPY.warming}
+        {warmingLine}
       </div>
     )
 

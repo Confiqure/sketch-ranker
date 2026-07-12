@@ -19,7 +19,14 @@ export const SITE = {
  * Shared microcopy for the Aurora cold-start states (sloppy-steaks energy).
  */
 export const COPY = {
-  warming: 'Slow down. Sloppy steaks take a minute.',
+  /** Rotating cold-start lines. Index 0 renders first (it's in the prerendered
+   *  HTML, so it must stay deterministic for hydration); the rest join the
+   *  rotation client-side. All complete thoughts, none command the user. */
+  warmingLines: [
+    'Sloppy steaks take a minute.',
+    'We are all trying to find the guy who paused this database.',
+    'The patterns are so complicated.',
+  ],
   warmingSub: 'The scoreboard is waking up.',
   snoozing:
     "The scoreboard doesn't even want to be around right now. Give it a second, then refresh.",

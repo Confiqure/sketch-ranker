@@ -2,6 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import type { SketchCardData } from './SketchVote'
 import { COPY } from '@/site.config'
+import { useWarmingLine } from './useWarmingLine'
 
 // Classic podium: 1st center + largest, 2nd left, 3rd right on desktop. DOM
 // order is 1st → 2nd → 3rd (so the mobile stack and the <ol> semantics read
@@ -83,26 +84,29 @@ const Podium: React.FC<{ top: PodiumSketch[] }> = ({ top }) => {
 
 /** Pulsing stand-in while the database wakes from its 0-ACU nap — keeps the
  *  podium section visible (and the layout stable) instead of vanishing. */
-export const PodiumSkeleton: React.FC = () => (
-  <div>
-    <ol className="grid animate-pulse items-end gap-3 sm:grid-cols-3">
-      {PLACES.map((place) => (
-        <li key={place.rank} className={`flex flex-col justify-end ${place.order} ${place.card}`}>
-          <div className="flex flex-col items-center rounded-2xl border-2 border-ink/10 bg-white p-3">
-            <span className={`${place.rank === 1 ? 'text-4xl' : 'text-2xl'} opacity-40`}>
-              {place.medal}
-            </span>
-            <div className={`mt-2 w-full rounded-lg bg-cream-deep ${place.img}`} />
-            <div className="mt-3 h-4 w-2/3 rounded bg-cream-deep" />
-            <div className="mt-2 h-3 w-1/3 rounded bg-cream-deep" />
-          </div>
-          <div className={`mx-4 mt-2 rounded-t-lg opacity-60 ${place.block}`} />
-        </li>
-      ))}
-    </ol>
-    <p className="mt-4 text-center font-goofy text-sm text-ink/60">{COPY.warming}</p>
-    <p className="mt-1 text-center text-xs text-ink/40">{COPY.warmingSub}</p>
-  </div>
-)
+export const PodiumSkeleton: React.FC = () => {
+  const line = useWarmingLine()
+  return (
+    <div>
+      <ol className="grid animate-pulse items-end gap-3 sm:grid-cols-3">
+        {PLACES.map((place) => (
+          <li key={place.rank} className={`flex flex-col justify-end ${place.order} ${place.card}`}>
+            <div className="flex flex-col items-center rounded-2xl border-2 border-ink/10 bg-white p-3">
+              <span className={`${place.rank === 1 ? 'text-4xl' : 'text-2xl'} opacity-40`}>
+                {place.medal}
+              </span>
+              <div className={`mt-2 w-full rounded-lg bg-cream-deep ${place.img}`} />
+              <div className="mt-3 h-4 w-2/3 rounded bg-cream-deep" />
+              <div className="mt-2 h-3 w-1/3 rounded bg-cream-deep" />
+            </div>
+            <div className={`mx-4 mt-2 rounded-t-lg opacity-60 ${place.block}`} />
+          </li>
+        ))}
+      </ol>
+      <p className="mt-4 text-center font-goofy text-sm text-ink/60">{line}</p>
+      <p className="mt-1 text-center text-xs text-ink/40">{COPY.warmingSub}</p>
+    </div>
+  )
+}
 
 export default Podium
