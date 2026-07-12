@@ -4,7 +4,7 @@ import { SITE } from '@/site.config'
 // Per-page <head>: title, description, canonical, and the full OG/Twitter share
 // card — all derived from site.config.ts so no page hand-rolls meta tags.
 type PageMetaProps = {
-  /** Page name; rendered as "<title> — Comedy Sketch Ranker". Omit on the homepage. */
+  /** Page name; rendered as "<title> · Comedy Sketch Ranker". Omit on the homepage. */
   title?: string
   description?: string
   /** Route path for the canonical/OG url, e.g. "/vote". Defaults to the homepage. */
@@ -14,7 +14,7 @@ type PageMetaProps = {
 }
 
 const PageMeta = ({ title, description, path = '/', noIndex = false }: PageMetaProps) => {
-  const fullTitle = title ? `${title} — ${SITE.title}` : SITE.title
+  const fullTitle = title ? `${title} · ${SITE.title}` : SITE.title
   const desc = description ?? SITE.description
   const url = `${SITE.url}${path === '/' ? '' : path}`
   const image = `${SITE.url}${SITE.ogImage}`

@@ -62,13 +62,13 @@ export default function Profile() {
       <div className="mt-6 w-full max-w-md rounded-2xl border-2 border-ink/10 bg-white p-8 shadow-md">
         <h2 className="mb-1 text-center font-goofy text-xl text-ink">Your taste, ranked</h2>
         <p className="mb-4 text-center text-sm text-ink/50">
-          Only <em>your</em> votes count here — your private Elo, same math as the big board.
+          Only <em>your</em> votes count here. Your private Elo, same math as the big board.
         </p>
         {isLoading ? (
           <p className="text-center text-ink/50">Crunching your votes…</p>
         ) : !myBoard || myBoard.entries.length === 0 ? (
           <p className="text-center text-ink/60">
-            No votes yet —{' '}
+            No votes yet.{' '}
             <Link href={ROUTES.vote} className="text-sky-pop hover:underline">
               go pick some favorites
             </Link>

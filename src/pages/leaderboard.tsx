@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react'
 import { trpc, WARMUP_RETRY } from '../utils/trpc'
 import { useState, useEffect } from 'react'
 import PageMeta from '@/components/PageMeta'
-import { ROUTES } from '@/site.config'
+import { COPY, ROUTES } from '@/site.config'
 
 const PERSONAL_MEDALS = ['🥇', '🥈', '🥉'] as const
 
@@ -54,7 +54,7 @@ const LeaderboardPage = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-cream text-xl text-ink/70">
         {meta}
-        Waking up the scoreboard…
+        {COPY.warming}
       </div>
     )
 
@@ -64,7 +64,7 @@ const LeaderboardPage = () => {
       <div className="w-full max-w-4xl rounded-2xl border-2 border-ink/10 bg-white p-8 shadow-md">
         <h1 className="mb-2 text-center font-goofy text-3xl text-ink">Leaderboard</h1>
         <p className="mb-6 text-center text-sm text-ink/50">
-          The crowd has spoken{myMedals.size > 0 && ' — medals mark your personal top 3'}.
+          The crowd has spoken{myMedals.size > 0 && '. Medals mark your personal top 3'}.
         </p>
         <ul className="space-y-4">
           {sketches?.map((sketch, index) => (

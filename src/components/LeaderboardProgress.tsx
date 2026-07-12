@@ -42,7 +42,7 @@ const LeaderboardProgress = ({ voteCount }: { voteCount: number }) => {
           <p className="text-lg font-medium mb-2">
             {voteCount < VOTE_THRESHOLD
               ? `${VOTE_THRESHOLD - voteCount} more votes to warm up your personal ranking.`
-              : `Personal ranking unlocked — check your profile!`}
+              : `Personal ranking unlocked. Check your profile!`}
           </p>
           <div className="w-full bg-gray-200 rounded-full h-5 relative">
             <div

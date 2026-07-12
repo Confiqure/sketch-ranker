@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { trpc, WARMUP_RETRY } from '../utils/trpc'
 import Podium, { PodiumSkeleton } from '@/components/Podium'
 import PageMeta from '@/components/PageMeta'
-import { ROUTES } from '@/site.config'
+import { COPY, ROUTES } from '@/site.config'
 
 // Landing page: what this is + straight into voting. The podium teases the live
 // standings — random stills per load, first place biggest — so the leaderboard
@@ -21,7 +21,7 @@ export default function Home() {
         <p className="mt-4 max-w-xl text-lg text-ink/60">
           Head-to-head votes decide the definitive ranking of every{' '}
           <span className="font-semibold text-ink">I Think You Should Leave</span> sketch. Pick the
-          funnier one — Elo does the rest. You gotta.
+          funnier one. Elo does the rest. You gotta.
         </p>
         <div className="mt-8 flex gap-4">
           <Link
@@ -46,9 +46,7 @@ export default function Home() {
         {top && top.length === 3 ? (
           <Podium top={top} />
         ) : isError ? (
-          <p className="text-center text-sm text-ink/50">
-            The scoreboard is still snoozing. It heard you — refresh in a few seconds.
-          </p>
+          <p className="text-center text-sm text-ink/50">{COPY.snoozing}</p>
         ) : (
           <PodiumSkeleton />
         )}

@@ -1,6 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import type { SketchCardData } from './SketchVote'
+import { COPY } from '@/site.config'
 
 // Classic podium: 1st center + largest, 2nd left, 3rd right on desktop. DOM
 // order is 1st → 2nd → 3rd (so the mobile stack and the <ol> semantics read
@@ -99,9 +100,8 @@ export const PodiumSkeleton: React.FC = () => (
         </li>
       ))}
     </ol>
-    <p className="mt-4 text-center text-sm text-ink/50">
-      Waking up the scoreboard… it&apos;s doing its best.
-    </p>
+    <p className="mt-4 text-center font-goofy text-sm text-ink/60">{COPY.warming}</p>
+    <p className="mt-1 text-center text-xs text-ink/40">{COPY.warmingSub}</p>
   </div>
 )
 
