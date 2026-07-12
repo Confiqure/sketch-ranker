@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PageMeta from '@/components/PageMeta'
 import { ROUTES } from '@/site.config'
 import { useSession, signIn } from 'next-auth/react'
@@ -9,14 +9,32 @@ import { trpc } from '../utils/trpc'
 const AdminPage = () => {
   const { data: session, status } = useSession()
   const utils = trpc.useUtils()
+  const [search, setSearch] = useState('')
+  const [query, setQuery] = useState('') // debounced copy of `search`
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 20
+
+  // Debounce typing → query, and snap back to page 1 on a new search.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setQuery(search)
+      setPage(1)
+    }, 300)
+    return () => clearTimeout(handle)
+  }, [search])
+
   const {
-    data: sketches,
+    data: sketchPage,
     isLoading,
+    isFetching,
     error,
-  } = trpc.admin.listSketches.useQuery(undefined, {
-    enabled: !!session,
-    retry: false,
-  })
+  } = trpc.admin.listSketches.useQuery(
+    { query: query || undefined, page, pageSize: PAGE_SIZE },
+    { enabled: !!session, retry: false, placeholderData: (prev) => prev }
+  )
+  const sketches = sketchPage?.sketches
+  const total = sketchPage?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   const invalidate = () => utils.admin.listSketches.invalidate()
   const createSketch = trpc.admin.createSketch.useMutation({ onSuccess: invalidate })
@@ -119,7 +137,7 @@ const AdminPage = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             {voters?.length === 0 && (
-              <p className="text-sm text-gray-500">No voters yet — add the first email above.</p>
+              <p className="text-sm text-gray-500">No voters yet. Add the first email above.</p>
             )}
             {voters?.map((v) => (
               <span
@@ -174,7 +192,18 @@ const AdminPage = () => {
           </div>
         </div>
 
-        {/* Sketch table */}
+        {/* Sketch table: server-side search + pagination keeps the page light */}
+        <div className="bg-white p-4 rounded-lg shadow-md mb-4 flex flex-col sm:flex-row sm:items-center gap-2">
+          <input
+            className="border rounded-lg px-3 py-2 flex-1 text-gray-800"
+            placeholder="Search title, collection, or description"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <span className="text-sm text-gray-500 shrink-0">
+            {isFetching ? 'Searching…' : `${total} sketch${total === 1 ? '' : 'es'}`}
+          </span>
+        </div>
         {isLoading ? (
           <p className="text-gray-700">Loading sketches…</p>
         ) : (
@@ -278,6 +307,32 @@ const AdminPage = () => {
                 </div>
               </div>
             ))}
+            {sketches?.length === 0 && (
+              <p className="text-gray-600 bg-white p-4 rounded-lg shadow-md">
+                No sketches match that search.
+              </p>
+            )}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="bg-white border rounded-lg px-3 py-1.5 text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  ← Prev
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="bg-white border rounded-lg px-3 py-1.5 text-gray-700 hover:bg-gray-50 disabled:opacity-40"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

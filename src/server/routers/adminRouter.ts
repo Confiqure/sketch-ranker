@@ -4,15 +4,41 @@ import { z } from 'zod'
 // Sketch + image management for the /admin page. Every procedure is gated on the
 // ADMIN_EMAILS allowlist (see trpc.ts adminProcedure).
 export const adminRouter = router({
-  listSketches: adminProcedure.query(async ({ ctx }) => {
-    return ctx.prisma.sketch.findMany({
-      orderBy: [{ collection: 'asc' }, { title: 'asc' }],
-      include: {
-        images: true,
-        _count: { select: { votesWon: true, votesLost: true } },
-      },
-    })
-  }),
+  // Paginated + searchable so the page never loads all 86 sketches (with images
+  // and vote counts) in one shot. Search matches title/collection/description.
+  listSketches: adminProcedure
+    .input(
+      z.object({
+        query: z.string().trim().optional(),
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const where = input.query
+        ? {
+            OR: [
+              { title: { contains: input.query, mode: 'insensitive' as const } },
+              { collection: { contains: input.query, mode: 'insensitive' as const } },
+              { description: { contains: input.query, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}
+      const [total, sketches] = await ctx.prisma.$transaction([
+        ctx.prisma.sketch.count({ where }),
+        ctx.prisma.sketch.findMany({
+          where,
+          orderBy: [{ collection: 'asc' }, { title: 'asc' }],
+          skip: (input.page - 1) * input.pageSize,
+          take: input.pageSize,
+          include: {
+            images: true,
+            _count: { select: { votesWon: true, votesLost: true } },
+          },
+        }),
+      ])
+      return { sketches, total, page: input.page, pageSize: input.pageSize }
+    }),
 
   createSketch: adminProcedure
     .input(
