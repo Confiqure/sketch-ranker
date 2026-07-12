@@ -30,6 +30,7 @@ const VotePage = () => {
   const {
     data: sketches,
     isLoading,
+    isFetching,
     refetch,
   } = trpc.sketch.getTwoSketches.useQuery(undefined, {
     enabled: canVote,
@@ -50,6 +51,11 @@ const VotePage = () => {
   const [coolingDown, setCoolingDown] = useState(false)
   const [secondsLeft, setSecondsLeft] = useState(0)
   const timersRef = useRef<{ end?: NodeJS.Timeout; tick?: NodeJS.Timeout }>({})
+  // Mirrors isFetching for the keydown handler without re-binding the listener.
+  const fetchingRef = useRef(false)
+  useEffect(() => {
+    fetchingRef.current = isFetching
+  }, [isFetching])
 
   const startCooldown = useCallback(() => {
     clearTimeout(timersRef.current.end)
@@ -96,7 +102,7 @@ const VotePage = () => {
   useEffect(() => {
     if (!canVote) return
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!sketches || sketches.length < 2) return
+      if (!sketches || sketches.length < 2 || fetchingRef.current) return
       if (event.key === '1') {
         handleVote(sketches[0].id, sketches[1].id)
       } else if (event.key === '2') {
@@ -151,11 +157,11 @@ const VotePage = () => {
         <h1 className="mb-2 font-goofy text-2xl text-ink">Almost in!</h1>
         <p className="mb-4 text-ink/60">
           Voting is invite-only to keep the rankings honest. Ask Dylan to add{' '}
-          <span className="font-semibold text-ink">{session.user?.email}</span> to the voter list —
-          once he does, this page unlocks automatically.
+          <span className="font-semibold text-ink">{session.user?.email}</span> to the voter list.
+          Once he does, this page unlocks automatically.
         </p>
         <a
-          href={`mailto:dwheelerw@gmail.com?subject=Add me to Sketch Ranker&body=Hey Dylan — add ${session.user?.email} to the voter list!`}
+          href={`mailto:dwheelerw@gmail.com?subject=Add me to Sketch Ranker&body=Hey Dylan, add ${session.user?.email} to the voter list!`}
           className="inline-block rounded-xl bg-sky-pop px-6 py-2 font-semibold text-white transition-colors hover:bg-sky-pop-dark"
         >
           Email Dylan
@@ -186,11 +192,13 @@ const VotePage = () => {
     <div className="flex min-h-screen flex-col items-center bg-cream">
       {meta}
       <div className="min-h-full w-full flex-1 p-4">
-        <ShortcutGuide />
+        <div className="hidden sm:block">
+          <ShortcutGuide />
+        </div>
         <LeaderboardProgress voteCount={voteCount ?? 0} />
         {voteForSketchMutation.isError && (
           <p className="mb-2 text-center text-sm text-ketchup">
-            That vote didn&apos;t save — the database may be waking up. Try again.
+            That vote didn&apos;t save. The database may be waking up. Try again.
           </p>
         )}
         <SketchVote
@@ -201,6 +209,7 @@ const VotePage = () => {
           cooldownKey={cooldownKey}
           coolingDown={coolingDown}
           secondsLeft={secondsLeft}
+          loadingNext={isFetching}
         />
       </div>
     </div>
