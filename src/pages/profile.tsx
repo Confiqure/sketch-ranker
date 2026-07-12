@@ -1,7 +1,7 @@
 import { useSession, signIn, signOut } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { trpc } from '../utils/trpc'
+import { trpc, WARMUP_RETRY } from '../utils/trpc'
 import PageMeta from '@/components/PageMeta'
 import { ROUTES } from '@/site.config'
 
@@ -14,7 +14,7 @@ export default function Profile() {
   // separate count query.
   const { data: myBoard, isLoading } = trpc.sketch.getMyLeaderboard.useQuery(
     { take: 10 },
-    { enabled: !!session }
+    { enabled: !!session, ...WARMUP_RETRY }
   )
 
   const meta = <PageMeta title="Profile" path={ROUTES.profile} />

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { signIn, useSession } from 'next-auth/react'
 import SketchVote, { VOTE_COOLDOWN_MS } from '@/components/SketchVote'
-import { trpc } from '../utils/trpc'
+import { trpc, WARMUP_RETRY } from '../utils/trpc'
 import LeaderboardProgress from '@/components/LeaderboardProgress'
 import ShortcutGuide from '@/components/ShortcutGuide'
 import PageMeta from '@/components/PageMeta'
@@ -23,6 +23,7 @@ const VotePage = () => {
   const utils = trpc.useUtils()
   const { data: voterStatus } = trpc.sketch.getVoterStatus.useQuery(undefined, {
     enabled: !!session,
+    ...WARMUP_RETRY,
   })
   const canVote = !!session && voterStatus?.allowed === true
 
@@ -32,6 +33,7 @@ const VotePage = () => {
     refetch,
   } = trpc.sketch.getTwoSketches.useQuery(undefined, {
     enabled: canVote,
+    ...WARMUP_RETRY,
   })
   const voteForSketchMutation = trpc.sketch.voteForSketch.useMutation()
 
@@ -39,6 +41,7 @@ const VotePage = () => {
   // vote log — cross-device, no localStorage mirror.
   const { data: voteCount } = trpc.sketch.getMyVoteCount.useQuery(undefined, {
     enabled: canVote,
+    ...WARMUP_RETRY,
   })
 
   // Post-vote lockout: prevents an accidental double-click from landing a stray

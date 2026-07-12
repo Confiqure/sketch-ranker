@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
-import { trpc } from '../utils/trpc'
+import { trpc, WARMUP_RETRY } from '../utils/trpc'
 import { useState, useEffect } from 'react'
 import PageMeta from '@/components/PageMeta'
 import { ROUTES } from '@/site.config'
@@ -12,12 +12,12 @@ const LeaderboardPage = () => {
   const [showScroll, setShowScroll] = useState(false)
   const [take, setTake] = useState(25)
   // Render straight from the query — no mirrored state, no date juggling.
-  const { data: sketches, isLoading } = trpc.sketch.getTopSketches.useQuery({ take })
+  const { data: sketches, isLoading } = trpc.sketch.getTopSketches.useQuery({ take }, WARMUP_RETRY)
   // The signed-in caller's top-3 taste, replayed from their own votes — bridges
   // "the crowd's ranking" to "YOUR ranking" with a medal on matching rows.
   const { data: myBoard } = trpc.sketch.getMyLeaderboard.useQuery(
     { take: 3 },
-    { enabled: !!session }
+    { enabled: !!session, ...WARMUP_RETRY }
   )
   const myMedals = new Map(myBoard?.entries.map((e, i) => [e.sketchId, PERSONAL_MEDALS[i]]) ?? [])
 
@@ -54,7 +54,7 @@ const LeaderboardPage = () => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-cream text-xl text-ink/70">
         {meta}
-        Loading...
+        Waking up the scoreboard…
       </div>
     )
 

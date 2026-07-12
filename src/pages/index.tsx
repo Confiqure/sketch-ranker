@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { trpc } from '../utils/trpc'
-import Podium from '@/components/Podium'
+import { trpc, WARMUP_RETRY } from '../utils/trpc'
+import Podium, { PodiumSkeleton } from '@/components/Podium'
 import PageMeta from '@/components/PageMeta'
 import { ROUTES } from '@/site.config'
 
@@ -8,7 +8,7 @@ import { ROUTES } from '@/site.config'
 // standings — random stills per load, first place biggest — so the leaderboard
 // feels alive before the first click.
 export default function Home() {
-  const { data: top } = trpc.sketch.getTopSketches.useQuery({ take: 3 })
+  const { data: top, isError } = trpc.sketch.getTopSketches.useQuery({ take: 3 }, WARMUP_RETRY)
 
   return (
     <main className="flex min-h-screen flex-col items-center bg-cream px-6 pb-16">
@@ -39,14 +39,20 @@ export default function Home() {
         </div>
       </div>
 
-      {top && top.length === 3 && (
-        <div className="mt-16 w-full max-w-3xl animate-pop-in">
-          <h2 className="mb-4 text-center font-goofy text-sm uppercase tracking-wide text-ink/50">
-            Current podium
-          </h2>
+      <div className="mt-16 w-full max-w-3xl animate-pop-in">
+        <h2 className="mb-4 text-center font-goofy text-sm uppercase tracking-wide text-ink/50">
+          Current podium
+        </h2>
+        {top && top.length === 3 ? (
           <Podium top={top} />
-        </div>
-      )}
+        ) : isError ? (
+          <p className="text-center text-sm text-ink/50">
+            The scoreboard is still snoozing. It heard you — refresh in a few seconds.
+          </p>
+        ) : (
+          <PodiumSkeleton />
+        )}
+      </div>
     </main>
   )
 }
