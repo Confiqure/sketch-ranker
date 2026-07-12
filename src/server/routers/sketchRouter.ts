@@ -8,6 +8,7 @@ import {
 } from '../trpc'
 import { z } from 'zod'
 import { eloUpdate, replayPersonalElo } from '../elo'
+import { withDbRetry } from '../dbRetry'
 import { attachRandomImages } from '../images'
 
 export type SketchWithImage = Sketch & {
@@ -18,15 +19,17 @@ export const sketchRouter = router({
   getTwoSketches: publicProcedure.query(async ({ ctx }) => {
     // Two random sketches need raw SQL (Prisma has no ORDER BY RANDOM()); their
     // meme images come back in ONE follow-up query via the shared helper.
-    const sketches = await ctx.prisma.$queryRaw<
-      Sketch[]
-    >`SELECT * FROM "Sketch" ORDER BY RANDOM() LIMIT 2`
-    return attachRandomImages(ctx.prisma, sketches)
+    return withDbRetry(async () => {
+      const sketches = await ctx.prisma.$queryRaw<
+        Sketch[]
+      >`SELECT * FROM "Sketch" ORDER BY RANDOM() LIMIT 2`
+      return attachRandomImages(ctx.prisma, sketches)
+    })
   }),
 
   // The signed-in caller's gate state — drives the /vote page's three UX states.
   getVoterStatus: protectedProcedure.query(async ({ ctx }) => {
-    return { allowed: await isAllowedVoter(ctx) }
+    return { allowed: await withDbRetry(() => isAllowedVoter(ctx)) }
   }),
 
   voteForSketch: voterProcedure
@@ -60,7 +63,7 @@ export const sketchRouter = router({
   getMyVoteCount: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user?.id
     if (!userId) return 0
-    return ctx.prisma.vote.count({ where: { userId } })
+    return withDbRetry(() => ctx.prisma.vote.count({ where: { userId } }))
   }),
 
   getTopSketches: publicProcedure
@@ -68,12 +71,14 @@ export const sketchRouter = router({
     .query(async ({ ctx, input }) => {
       // Images + win/loss tallies ride along so the podium and leaderboard can
       // show a still and a record without extra round-trips.
-      const sketches = await ctx.prisma.sketch.findMany({
-        orderBy: { rating: 'desc' },
-        include: { _count: { select: { votesWon: true, votesLost: true } } },
-        ...(input?.take ? { take: input.take } : {}),
+      return withDbRetry(async () => {
+        const sketches = await ctx.prisma.sketch.findMany({
+          orderBy: { rating: 'desc' },
+          include: { _count: { select: { votesWon: true, votesLost: true } } },
+          ...(input?.take ? { take: input.take } : {}),
+        })
+        return attachRandomImages(ctx.prisma, sketches)
       })
-      return attachRandomImages(ctx.prisma, sketches)
     }),
 
   // "Your taste, ranked" — the caller's own votes replayed through the shared
@@ -85,11 +90,13 @@ export const sketchRouter = router({
       const userId = ctx.session.user?.id
       if (!userId) return { entries: [], sketchesRanked: 0, votesCast: 0 }
 
-      const votes = await ctx.prisma.vote.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'asc' },
-        select: { winnerId: true, loserId: true },
-      })
+      const votes = await withDbRetry(() =>
+        ctx.prisma.vote.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'asc' },
+          select: { winnerId: true, loserId: true },
+        })
+      )
       const standings = replayPersonalElo(votes)
       const top = standings.slice(0, input?.take ?? 10)
 
