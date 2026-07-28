@@ -9,6 +9,7 @@ import Script from 'next/script'
 import Head from 'next/head'
 import { Bungee } from 'next/font/google'
 import NavBar from '@/components/NavBar'
+import Footer from '@/components/Footer'
 
 // Chunky display face for headings — self-hosted at build by next/font (no
 // runtime Google request). Exposed as --font-bungee for the Tailwind theme.
@@ -39,6 +40,7 @@ const SketchApp: AppType = ({ Component, pageProps: { session, ...pageProps } }:
         <div className={`${bungee.variable} min-h-screen bg-cream`}>
           <NavBar />
           <Component {...pageProps} />
+          <Footer />
         </div>
       </QueryClientProvider>
     </SessionProvider>
