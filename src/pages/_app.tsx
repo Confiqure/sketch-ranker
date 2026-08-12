@@ -15,11 +15,11 @@ import Footer from '@/components/Footer'
 // runtime Google request). Exposed as --font-bungee for the Tailwind theme.
 const bungee = Bungee({ weight: '400', subsets: ['latin'], variable: '--font-bungee' })
 
-// Self-hosted Plausible (analytics.dylanwheeler.net). Env vars injected by AWS Amplify
+// Self-hosted Umami (analytics.dylanwheeler.net). Env vars injected by AWS Amplify
 // (Terraform: monorepo workspace/infrastructure/amplify/apps.tf); the script only renders
-// when the domain is set, so local dev never emits events.
-const plausibleHost = process.env.NEXT_PUBLIC_PLAUSIBLE_HOST ?? 'https://analytics.dylanwheeler.net'
-const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ?? ''
+// when the website ID is set, so local dev never emits events.
+const umamiHost = process.env.NEXT_PUBLIC_UMAMI_HOST ?? 'https://analytics.dylanwheeler.net'
+const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ?? ''
 
 const queryClient = new QueryClient()
 
@@ -30,11 +30,11 @@ const SketchApp: AppType = ({ Component, pageProps: { session, ...pageProps } }:
         <Head>
           <title>Comedy Sketch Ranker</title>
         </Head>
-        {plausibleDomain && (
+        {umamiWebsiteId && (
           <Script
             defer
-            data-domain={plausibleDomain}
-            src={`${plausibleHost}/js/script.file-downloads.hash.outbound-links.pageview-props.tagged-events.js`}
+            data-website-id={umamiWebsiteId}
+            src={`${umamiHost}/script.js`}
           />
         )}
         <div className={`${bungee.variable} min-h-screen bg-cream`}>
